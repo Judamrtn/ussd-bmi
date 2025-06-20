@@ -10,44 +10,47 @@ app.post('/ussd', (req, res) => {
     let response = '';
     const inputs = text.split('*');
 
-    // Debug logs
     console.log(`Session: ${sessionId}, Phone: ${phoneNumber}, Text: ${text}, Inputs:`, inputs);
+
+    const lang = inputs[0]; // 1 = English, 2 = Kinyarwanda
 
     if (text === '') {
         // Step 1: Language selection
-        response = `CON Welcome to Health BMI App
-1. English
-2. Kinyarwanda`;
+        response = `CON Welcome to Health BMI App\n1. English\n2. Kinyarwanda`;
     } else if (inputs.length === 1) {
         // Step 2: Ask for weight
-        response = `CON Enter your weight in KG:`;
+        response = lang === '1'
+            ? 'CON Enter your weight in KG:'
+            : 'CON Andika ibiro byawe mu kiro:';
     } else if (inputs.length === 2) {
         // Step 3: Ask for height
-        response = `CON Enter your height in CM:`;
+        response = lang === '1'
+            ? 'CON Enter your height in CM:'
+            : 'CON Andika uburebure bwawe muri CM:';
     } else if (inputs.length === 3) {
         // Step 4: Calculate BMI
         const weight = parseFloat(inputs[1]);
         const height = parseFloat(inputs[2]);
 
         if (isNaN(weight) || isNaN(height)) {
-            response = 'END Invalid weight or height. Please enter valid numbers.';
+            response = lang === '1'
+                ? 'END Invalid weight or height. Please enter valid numbers.'
+                : 'END Watanze ibipimo bidahuye. Ongera ugerageze.';
         } else {
             const bmi = weight / ((height / 100) ** 2);
             let status = '';
 
-            if (bmi < 18.5) status = 'Underweight';
-            else if (bmi < 25) status = 'Normal';
-            else if (bmi < 30) status = 'Overweight';
-            else status = 'Obese';
+            if (bmi < 18.5) status = lang === '1' ? 'Underweight' : 'Ufite ibiro bike cyane';
+            else if (bmi < 25) status = lang === '1' ? 'Normal' : 'Ibiro bisanzwe';
+            else if (bmi < 30) status = lang === '1' ? 'Overweight' : 'Ufite ibiro byinshi';
+            else status = lang === '1' ? 'Obese' : 'Ufite umubyibuho ukabije';
 
-            response = `CON Your BMI is ${bmi.toFixed(1)} (${status})
-Would you like health tips?
-1. Yes
-2. No`;
+            response = lang === '1'
+                ? `CON Your BMI is ${bmi.toFixed(1)} (${status})\nWould you like health tips?\n1. Yes\n2. No`
+                : `CON BMI yawe ni ${bmi.toFixed(1)} (${status})\nWifuza inama z’ubuzima?\n1. Yego\n2. Oya`;
         }
     } else if (inputs.length === 4) {
         // Step 5: Provide health tips
-        const lang = inputs[0]; // 1 = English, 2 = Kinyarwanda
         const weight = parseFloat(inputs[1]);
         const height = parseFloat(inputs[2]);
         const wantTips = inputs[3];
@@ -80,11 +83,15 @@ Would you like health tips?
                 ? 'END Thank you for using our service.'
                 : 'END Murakoze gukoresha serivisi yacu.';
         } else {
-            response = 'END Invalid option for health tips.';
+            response = lang === '1'
+                ? 'END Invalid option for health tips.'
+                : 'END Igisubizo si cyo. Ongera ugerageze.';
         }
     } else {
-        // Handle too many or invalid inputs
-        response = 'END Invalid input. Please restart and follow the instructions.';
+        // Invalid or too many inputs
+        response = lang === '1'
+            ? 'END Invalid input. Please restart and follow the instructions.'
+            : 'END Igisubizo si cyo. Tangira bundi bushya ukurikize amabwiriza.';
     }
 
     res.set('Content-Type', 'text/plain');
@@ -94,5 +101,5 @@ Would you like health tips?
 // Start server
 const PORT = 7000;
 app.listen(PORT, () => {
-    console.log(` USSD app running at http://localhost:${PORT}/ussd`);
+    console.log(`✅ USSD app running at http://localhost:${PORT}/ussd`);
 });
