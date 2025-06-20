@@ -16,7 +16,7 @@ app.post('/ussd', (req, res) => {
 
     if (text === '') {
         // Step 1: Language selection
-        response = `CON Welcome to Health BMI App\n1. English\n2. Kinyarwanda`;
+        response = `CON Welcome to Health BMI App / Ikaze kuri porogaramu ya BMI\n1. English\n2. Kinyarwanda`;
     } else if (inputs.length === 1) {
         // Step 2: Ask for weight
         response = lang === '1'
