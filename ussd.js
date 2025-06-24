@@ -10,32 +10,6 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// Create tables if not exist (runs once at server start)
-async function initDB() {
-    await pool.query(`
-        CREATE TABLE IF NOT EXISTS sessions (
-            id SERIAL PRIMARY KEY,
-            session_id TEXT UNIQUE NOT NULL,
-            phone_number TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    `);
-
-    await pool.query(`
-        CREATE TABLE IF NOT EXISTS measurements (
-            id SERIAL PRIMARY KEY,
-            session_id TEXT REFERENCES sessions(session_id),
-            age INTEGER,
-            weight NUMERIC,
-            height NUMERIC,
-            bmi NUMERIC,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    `);
-}
-
-initDB().catch(console.error);
-
 // USSD endpoint
 app.post('/ussd', async (req, res) => {
     let { sessionId, phoneNumber, text } = req.body;
@@ -78,30 +52,43 @@ app.post('/ussd', async (req, res) => {
             response = `CON Welcome to Health BMI App / Ikaze kuri porogaramu ya BMI\n1. English\n2. Kinyarwanda`;
         } else if (inputs.length === 1) {
             // Step 2: Ask for weight + Back option
-            // Since back from here goes to language selection
             response = lang === '1'
                 ? 'CON Enter your weight in Kilograms:\n0. Back'
                 : 'CON Andika ibiro byawe mu kiro:\n0. Subira inyuma';
         } else if (inputs.length === 2) {
-            // Step 3: Ask for age + Back option
-            response = lang === '1'
-                ? 'CON Enter your age:\n0. Back'
-                : 'CON Andika imyaka yawe:\n0. Subira inyuma';
+            // Validate weight input before going to age
+            const weight = parseFloat(inputs[1]);
+            if (isNaN(weight) || weight <= 0 || weight > 300) {
+                response = lang === '1'
+                    ? 'CON Invalid weight. Please enter a valid weight in Kilograms:\n0. Back'
+                    : 'CON Ibiro ntibikwiye. Ongera wandike ibiro mu kiro:\n0. Subira inyuma';
+            } else {
+                response = lang === '1'
+                    ? 'CON Enter your age:\n0. Back'
+                    : 'CON Andika imyaka yawe:\n0. Subira inyuma';
+            }
         } else if (inputs.length === 3) {
-            // Step 4: Ask for height + Back option
-            response = lang === '1'
-                ? 'CON Enter your height in centimeters:\n0. Back'
-                : 'CON Andika uburebure bwawe muri sanimetero:\n0. Subira inyuma';
+            // Validate age input before going to height
+            const age = parseInt(inputs[2]);
+            if (isNaN(age) || age <= 0 || age > 120) {
+                response = lang === '1'
+                    ? 'CON Invalid age. Please enter a valid age:\n0. Back'
+                    : 'CON Imyaka ntikwiye. Ongera wandike imyaka yawe:\n0. Subira inyuma';
+            } else {
+                response = lang === '1'
+                    ? 'CON Enter your height in centimeters:\n0. Back'
+                    : 'CON Andika uburebure bwawe muri sanimetero:\n0. Subira inyuma';
+            }
         } else if (inputs.length === 4) {
-            // Step 5: Calculate BMI and show result + Back option
+            // Validate height input and calculate BMI
             const weight = parseFloat(inputs[1]);
             const age = parseInt(inputs[2]);
             const height = parseFloat(inputs[3]);
 
-            if (isNaN(weight) || isNaN(age) || isNaN(height)) {
+            if (isNaN(height) || height < 30 || height > 250) {
                 response = lang === '1'
-                    ? 'END Invalid weight, height or age. Please enter valid numbers.'
-                    : 'END Ibiro, uburebure cyangwa imyaka ntibiri mu buryo bukwiriye. Ongera ugerageze.';
+                    ? 'CON Invalid height. Please enter a valid height in centimeters:\n0. Back'
+                    : 'CON Uburebure ntibukwiye. Ongera wandike uburebure muri sanimetero:\n0. Subira inyuma';
             } else {
                 const bmi = weight / ((height / 100) ** 2);
 
