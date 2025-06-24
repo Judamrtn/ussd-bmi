@@ -12,6 +12,15 @@
   "type": "commonjs",
   "dependencies": {
     "body-parser": "^2.2.0",
-    "express": "^5.1.0"
-  }
+    "express": "^5.1.0",
+    "pg": "^8.16.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Judamrtn/ussd-bmi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Judamrtn/ussd-bmi/issues"
+  },
+  "homepage": "https://github.com/Judamrtn/ussd-bmi#readme"
 }
