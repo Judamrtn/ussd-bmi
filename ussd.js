@@ -20,13 +20,13 @@ app.post('/ussd', (req, res) => {
     } else if (inputs.length === 1) {
         // Step 2: Ask for weight
         response = lang === '1'
-            ? 'CON Enter your weight in KG:'
+            ? 'CON Enter your weight in Kilograms:'
             : 'CON Andika ibiro byawe mu kiro:';
     } else if (inputs.length === 2) {
         // Step 3: Ask for height
         response = lang === '1'
-            ? 'CON Enter your height in CM:'
-            : 'CON Andika uburebure bwawe muri CM:';
+            ? 'CON Enter your height in centimeters:'
+            : 'CON Andika uburebure bwawe muri sanimetero:';
     } else if (inputs.length === 3) {
         // Step 4: Calculate BMI
         const weight = parseFloat(inputs[1]);
