@@ -24,9 +24,16 @@ app.post('/ussd', (req, res) => {
             : 'CON Andika ibiro byawe mu kiro:';
     } else if (inputs.length === 2) {
         // Step 3: Ask for height
-        response = lang === '1'
-            ? 'CON Enter your height in centimeters:'
-            : 'CON Andika uburebure bwawe muri sanimetero:';
+        const weight = parseFloat(inputs[1]);
+        if (isNaN(weight)) {
+            response = lang === '1'
+                ? 'CON Invalid weight. Please enter a valid number in KG:'
+                : 'CON Ibiro wanditse si byo. Andika umubare nyawo mu kiro:';
+        } else {
+            response = lang === '1'
+                ? 'CON Enter your height in centimeters:'
+                : 'CON Andika uburebure bwawe muri sanimetero:';
+        }
     } else if (inputs.length === 3) {
         // Step 4: Calculate BMI
         const weight = parseFloat(inputs[1]);
@@ -34,8 +41,8 @@ app.post('/ussd', (req, res) => {
 
         if (isNaN(weight) || isNaN(height)) {
             response = lang === '1'
-                ? 'END Invalid weight or height. Please enter valid numbers.'
-                : 'END Watanze ibipimo bidahuye. Ongera ugerageze.';
+                ? 'CON Invalid input. Please enter your height again in centimeters:'
+                : 'CON Watanze uburebure butari bwo. Andika uburebure bwawe neza muri sanimetero:';
         } else {
             const bmi = weight / ((height / 100) ** 2);
             let status = '';
@@ -84,8 +91,8 @@ app.post('/ussd', (req, res) => {
                 : 'END Murakoze gukoresha serivisi yacu.';
         } else {
             response = lang === '1'
-                ? 'END Invalid option for health tips.'
-                : 'END Igisubizo si cyo. Ongera ugerageze.';
+                ? 'CON Invalid option. Please select:\n1. Yes\n2. No'
+                : 'CON Igisubizo si cyo. Hitamo:\n1. Yego\n2. Oya';
         }
     } else {
         // Invalid or too many inputs
